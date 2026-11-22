@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Lab &amp; Equipment Reservation Portal</title>
+      <link rel="stylesheet" href="miniproject.css">
+
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="brand">
+      <h1>LabTrack</h1>
+      <span>Smart Lab &amp; Equipment Reservation System</span>
+    </div>
+    <div class="header-actions">
+      <button id="openRequestModalBtn" class="btn btn-accent">
+        + Request Equipment
+      </button>
+      <button id="resetDemoBtn" class="btn btn-outline" title="Reset sample data">
+        Reset Demo Data
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Equipment</span>
+        <strong id="totalCount" class="stat-value">0</strong>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Available Now</span>
+        <strong id="availableCount" class="stat-value text-green">0</strong>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Active Bookings</span>
+        <strong id="bookedCount" class="stat-value text-blue">0</strong>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Overdue Returns</span>
+        <strong id="overdueCount" class="stat-value text-red">0</strong>
+      </div>
+    </section>
+
+    <section class="controls-bar">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search by equipment name or ID (e.g., Arduino, EQ-101)..."
+      />
+      <select id="categoryFilter">
+        <option value="All">All Categories</option>
+        <option value="Microcontrollers">Microcontrollers</option>
+        <option value="Sensors">Sensors</option>
+        <option value="Lab Equipment">Lab Equipment</option>
+        <option value="Networking">Networking</option>
+      </select>
+      <select id="statusFilter">
+        <option value="All">All Status</option>
+        <option value="Available">Available</option>
+        <option value="Booked">Booked / In Use</option>
+        <option value="Overdue">Overdue</option>
+      </select>
+    </section>
+
+    <section>
+      <h2 class="section-title">Lab Equipment Inventory</h2>
+      <div id="equipmentGrid" class="equipment-grid"></div>
+    </section>
+
+    <section class="log-section">
+      <h2 class="section-title">Equipment Requests &amp; Requisitions</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Requested Item</th>
+              <th>Category &amp; Target Lab</th>
+              <th>Qty</th>
+              <th>Requested By</th>
+              <th>Purpose</th>
+              <th>Status</th>
+              <th>Admin Action</th>
+            </tr>
+          </thead>
+          <tbody id="requestsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="log-section">
+      <h2 class="section-title">Reservation &amp; Check-In Log</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Equipment</th>
+              <th>Student Name</th>
+              <th>Roll No.</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bookingTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="bookingModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Reserve Equipment</h3>
+        <button id="closeBookingModalBtn" class="close-btn">&times;</button>
+      </div>
+
+      <p id="modalItemTitle" class="modal-subtitle"></p>
+      <div id="existingSlotsBox" class="existing-slots"></div>
+
+      <form id="bookingForm">
+        <input type="hidden" id="selectedItemId" />
+
+        <label for="studentName">Student Name</label>
+        <input type="text" id="studentName" required placeholder="e.g., Aarav Sharma" />
+
+        <label for="rollNo">University Roll No.</label>
+        <input type="text" id="rollNo" required placeholder="e.g., 2500320100045" />
+
+        <div class="time-row">
+          <div>
+            <label for="startTime">Start Time</label>
+            <input type="datetime-local" id="startTime" required />
+          </div>
+          <div>
+            <label for="endTime">End Time</label>
+            <input type="datetime-local" id="endTime" required />
+          </div>
+        </div>
+
+        <p id="formError" class="error-msg hidden"></p>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelBookingModalBtn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="requestModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Request New Equipment</h3>
+        <button id="closeRequestModalBtn" class="close-btn">&times;</button>
+      </div>
+
+      <p class="modal-subtitle">Submit an indent for lab coordinator approval</p>
+
+      <form id="requestForm">
+        <label for="reqEquipmentName">Equipment Name</label>
+        <input type="text" id="reqEquipmentName" required placeholder="e.g., Logic Analyzer 16-Channel" />
+
+        <div class="time-row">
+          <div>
+            <label for="reqCategory">Category</label>
+            <select id="reqCategory" required>
+              <option value="Microcontrollers">Microcontrollers</option>
+              <option value="Sensors">Sensors</option>
+              <option value="Lab Equipment">Lab Equipment</option>
+              <option value="Networking">Networking</option>
+            </select>
+          </div>
+          <div>
+            <label for="reqQty">Quantity</label>
+            <input type="number" id="reqQty" min="1" max="20" value="1" required />
+          </div>
+        </div>
+
+        <label for="reqLab">Target Lab</label>
+        <input type="text" id="reqLab" required placeholder="e.g., Embedded Lab 1" />
+
+        <label for="reqBy">Requested By (Name &amp; Roll No.)</label>
+        <input type="text" id="reqBy" required placeholder="e.g., Neha Gupta (2500320100064)" />
+
+        <label for="reqPurpose">Project / Lab Purpose</label>
+        <input type="text" id="reqPurpose" required placeholder="e.g., Capstone robotics sensor debugging" />
+
+        <p id="requestFormError" class="error-msg hidden"></p>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelRequestModalBtn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="miniproject.js"></script>
+</body>
+</html>
